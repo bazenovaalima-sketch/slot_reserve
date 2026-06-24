@@ -19,7 +19,13 @@ async function main() {
   await db.studio.deleteMany();
 
   const studio = await db.studio.create({
-    data: { name: "Студия Айгерим", slug: "aigerim", tz: "Asia/Almaty" },
+    data: {
+      name: "Aigerim's Beauty Salon",
+      slug: "aigerim",
+      address: "ул. Кабанбая, 56",
+      phone: "+7 707 123 45 67",
+      tz: "Asia/Almaty",
+    },
   });
 
   const services = await Promise.all(
@@ -32,15 +38,15 @@ async function main() {
   );
 
   const mastersData = [
-    { name: "Айгерим", color: "#7c6cf6", daysOff: [0] }, // вс выходной
-    { name: "Динара", color: "#f6729b", daysOff: [0, 1] }, // вс, пн выходной
-    { name: "Сауле", color: "#34c7a8", daysOff: [0] },
+    { name: "Айгерим", title: "Топ-мастер · owner", color: "#e0568f", daysOff: [0] }, // вс выходной
+    { name: "Динара", title: "Мастер маникюра", color: "#c06ad6", daysOff: [0, 1] }, // вс, пн выходной
+    { name: "Сауле", title: "Мастер педикюра", color: "#f0934a", daysOff: [0] },
   ];
 
   const masters = [];
   for (const m of mastersData) {
     const master = await db.master.create({
-      data: { studioId: studio.id, name: m.name, color: m.color },
+      data: { studioId: studio.id, name: m.name, title: m.title, color: m.color },
     });
     // Пн–Сб 10:00–20:00, кроме выходных мастера
     for (let weekday = 0; weekday <= 6; weekday++) {

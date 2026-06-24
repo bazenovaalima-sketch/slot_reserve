@@ -9,6 +9,7 @@ import {
   humanDate,
 } from "@/lib/time";
 import { initial } from "@/lib/format";
+import Logo from "@/components/Logo";
 import AptActions from "./AptActions";
 
 export default async function AdminPage({
@@ -51,10 +52,7 @@ export default async function AdminPage({
     <main className="mx-auto max-w-3xl px-4 pb-12">
       <header className="sticky top-0 z-10 -mx-4 bg-bg/85 px-4 pb-3 pt-5 backdrop-blur">
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-semibold">{studio.name}</h1>
-            <p className="text-sm text-muted">{humanDate(dateStr)} · {total} записей</p>
-          </div>
+          <Logo />
           <Link
             href={`/${studio.slug}`}
             className="rounded-full border border-line bg-surface px-3 py-1.5 text-sm font-medium hover:border-brand"
@@ -62,6 +60,9 @@ export default async function AdminPage({
             Страница записи
           </Link>
         </div>
+        <p className="mt-2 text-sm text-muted">
+          Кабинет · {humanDate(dateStr)} · {total} записей
+        </p>
         <div className="mt-3 flex items-center gap-2">
           <Link
             href={`/admin?date=${addDays(dateStr, -1)}`}

@@ -1,17 +1,19 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-bg: #faf7f5;
+  --color-bg: #fdf7f9;
   --color-surface: #ffffff;
-  --color-ink: #1c1a22;
-  --color-muted: #8a8595;
-  --color-line: #ece7e3;
-  --color-brand: #7c5cf6;
-  --color-brand-soft: #f1edff;
-  --color-pink: #f6729b;
+  --color-ink: #2a1f25;
+  --color-muted: #9a8a91;
+  --color-line: #f1e3e9;
+  --color-brand: #db4f86;
+  --color-brand-deep: #b8366a;
+  --color-brand-soft: #fceef4;
+  --color-gold: #c79a5b;
   --color-ok: #2fae8f;
   --color-danger: #e0556d;
   --font-sans: var(--font-geist-sans);
+  --font-display: var(--font-display);
 }
 
 html {
@@ -23,6 +25,18 @@ body {
   color: var(--color-ink);
   font-family: var(--font-sans), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
+}
+
+.font-display {
+  font-family: var(--font-display), Georgia, serif;
+}
+
+/* мягкий блаш-градиент для героя */
+.blush {
+  background:
+    radial-gradient(120% 80% at 100% 0%, #fbe3ee 0%, transparent 55%),
+    radial-gradient(120% 90% at 0% 100%, #f7e9f6 0%, transparent 50%),
+    var(--color-bg);
 }
 
 @keyframes rise {

@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
+import Logo from "@/components/Logo";
 import { fetchSlots, book } from "@/app/actions";
 import type { Slot } from "@/lib/availability";
 import {
@@ -15,10 +16,15 @@ import {
 import { tenge, duration, initial } from "@/lib/format";
 
 type Service = { id: string; name: string; durationMin: number; priceKzt: number };
-type Master = { id: string; name: string; color: string };
-type Studio = { id: string; name: string; slug: string };
+type Master = { id: string; name: string; title: string; color: string };
+type Studio = { id: string; name: string; slug: string; address: string };
 
-const ANY: Master = { id: "any", name: "Любой свободный", color: "#b3acc4" };
+const ANY: Master = {
+  id: "any",
+  name: "Любой свободный",
+  title: "первое свободное окно",
+  color: "#caa6b6",
+};
 const DAYS_AHEAD = 14;
 
 type Step = 1 | 2 | 3 | 4 | 5;
@@ -114,7 +120,7 @@ export default function BookingFlow({
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col px-4 pb-10">
       <Header
-        studioName={studio.name}
+        address={studio.address}
         step={step}
         onBack={
           step > 1 && step < 5
@@ -168,7 +174,10 @@ export default function BookingFlow({
               >
                 {m.id === "any" ? "✦" : initial(m.name)}
               </span>
-              <span className="font-medium">{m.name}</span>
+              <span className="leading-tight">
+                <span className="block font-medium">{m.name}</span>
+                {m.title && <span className="block text-sm text-muted">{m.title}</span>}
+              </span>
             </button>
           ))}
         </section>
@@ -311,34 +320,30 @@ export default function BookingFlow({
 /* ——— подкомпоненты ——— */
 
 function Header({
-  studioName,
+  address,
   step,
   onBack,
 }: {
-  studioName: string;
+  address: string;
   step: Step;
   onBack?: () => void;
 }) {
   return (
     <header className="sticky top-0 z-10 -mx-4 mb-5 bg-bg/80 px-4 pb-3 pt-5 backdrop-blur">
       <div className="flex items-center gap-3">
-        {onBack ? (
+        {onBack && (
           <button
             onClick={onBack}
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-line bg-surface text-lg"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-line bg-surface text-lg"
             aria-label="Назад"
           >
             ‹
           </button>
-        ) : (
-          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-brand text-sm font-bold text-white">
-            S
-          </span>
         )}
-        <div className="leading-tight">
-          <div className="text-sm font-semibold">{studioName}</div>
-          <div className="text-xs text-muted">Онлайн-запись</div>
-        </div>
+        <Logo />
+        {address && (
+          <span className="ml-auto text-right text-xs text-muted">{address}</span>
+        )}
       </div>
       {step < 5 && (
         <div className="mt-3 flex gap-1.5">

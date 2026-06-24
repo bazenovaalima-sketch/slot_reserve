@@ -19,14 +19,24 @@ export default async function StudioPage({
 
   return (
     <BookingFlow
-      studio={{ id: studio.id, name: studio.name, slug: studio.slug }}
+      studio={{
+        id: studio.id,
+        name: studio.name,
+        slug: studio.slug,
+        address: studio.address ?? "",
+      }}
       services={studio.services.map((s) => ({
         id: s.id,
         name: s.name,
         durationMin: s.durationMin,
         priceKzt: s.priceKzt,
       }))}
-      masters={studio.masters.map((m) => ({ id: m.id, name: m.name, color: m.color }))}
+      masters={studio.masters.map((m) => ({
+        id: m.id,
+        name: m.name,
+        title: m.title ?? "",
+        color: m.color,
+      }))}
     />
   );
 }
