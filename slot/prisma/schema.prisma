@@ -1,0 +1,79 @@
+// Slot — booking for micro service studios.
+// Источник правды о расписании. Инварианта: у одного мастера интервалы
+// [startsAt, endsAt) со status=booked не пересекаются.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Studio {
+  id        String    @id @default(cuid())
+  name      String
+  slug      String    @unique
+  tz        String    @default("Asia/Almaty")
+  masters   Master[]
+  services  Service[]
+  createdAt DateTime  @default(now())
+}
+
+model Master {
+  id           String         @id @default(cuid())
+  studioId     String
+  studio       Studio         @relation(fields: [studioId], references: [id])
+  name         String
+  color        String         @default("#7c6cf6")
+  isActive     Boolean        @default(true)
+  workingHours WorkingHours[]
+  appointments Appointment[]
+}
+
+model Service {
+  id           String        @id @default(cuid())
+  studioId     String
+  studio       Studio        @relation(fields: [studioId], references: [id])
+  name         String
+  durationMin  Int
+  priceKzt     Int
+  isActive     Boolean       @default(true)
+  appointments Appointment[]
+}
+
+// Рабочие часы по дню недели (0=Вс .. 6=Сб), минуты от полуночи (локальное время студии).
+model WorkingHours {
+  id       String @id @default(cuid())
+  masterId String
+  master   Master @relation(fields: [masterId], references: [id])
+  weekday  Int
+  startMin Int
+  endMin   Int
+}
+
+model Client {
+  id           String        @id @default(cuid())
+  name         String
+  phone        String
+  appointments Appointment[]
+  createdAt    DateTime      @default(now())
+}
+
+model Appointment {
+  id          String   @id @default(cuid())
+  masterId    String
+  master      Master   @relation(fields: [masterId], references: [id])
+  serviceId   String
+  service     Service  @relation(fields: [serviceId], references: [id])
+  clientId    String
+  client      Client   @relation(fields: [clientId], references: [id])
+  startsAt    DateTime
+  endsAt      DateTime
+  status      String   @default("booked") // booked | cancelled | no_show | done
+  manageToken String   @unique @default(cuid())
+  createdAt   DateTime @default(now())
+
+  @@index([masterId, startsAt])
+}
