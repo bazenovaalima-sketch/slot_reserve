@@ -494,7 +494,7 @@ function ReminderPreview({
       </div>
       <div className="rounded-xl rounded-tl-sm bg-white p-3 text-sm shadow-sm">
         Здравствуйте! Напоминаем: <b>{humanDate(dateStr)} в {minToHHMM(startMin)}</b> вас ждёт{" "}
-        {masterName} в Aigerim&rsquo;s Beauty Salon 💅
+        {masterName}{" "}в Aigerim&rsquo;s Beauty Salon 💅
         <div className="mt-2 flex gap-2">
           <span className="rounded-lg bg-[#dcf8c6] px-3 py-1 text-xs font-medium text-[#1f8a4c]">
             Подтверждаю
