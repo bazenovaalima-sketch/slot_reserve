@@ -4,7 +4,6 @@
 
 - 📄 **Сдаточный документ (пункты 1–5 + рефлексия + скриншоты):** [SUBMISSION.md](SUBMISSION.md)
 - 🔗 **Живой прототип:** https://slot-jet.vercel.app — `/aigerim` (клиент) · `/admin` (студия)
-- 🧠 **Рабочий план:** [PLAN.md](PLAN.md)
 
 <p>
   <img src="docs/screens/00-landing.png" width="200">
