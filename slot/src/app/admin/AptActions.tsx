@@ -1,15 +1,34 @@
 "use client";
 
 import { useTransition } from "react";
-import { cancelAppointment, setStatus } from "@/app/actions";
+import { cancelAppointment, setStatus, markReminded } from "@/app/actions";
 
-export default function AptActions({ id, status }: { id: string; status: string }) {
+export default function AptActions({
+  id,
+  status,
+  reminded,
+  confirmed,
+}: {
+  id: string;
+  status: string;
+  reminded: boolean;
+  confirmed: boolean;
+}) {
   const [pending, start] = useTransition();
 
   return (
-    <div className="mt-2 flex gap-2 text-xs">
+    <div className="mt-2 flex flex-wrap gap-2 text-xs">
       {status === "booked" && (
         <>
+          {!reminded && !confirmed && (
+            <button
+              disabled={pending}
+              onClick={() => start(async () => void (await markReminded(id)))}
+              className="rounded-lg border border-line px-2 py-1 font-medium text-gold hover:border-gold disabled:opacity-40"
+            >
+              Напомнить
+            </button>
+          )}
           <button
             disabled={pending}
             onClick={() => start(async () => void (await setStatus(id, "no_show")))}

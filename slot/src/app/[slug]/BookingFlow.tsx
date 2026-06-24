@@ -13,7 +13,7 @@ import {
   dayNum,
   minToHHMM,
 } from "@/lib/time";
-import { tenge, duration, initial } from "@/lib/format";
+import { tenge, duration, initial, depositFor } from "@/lib/format";
 
 type Service = { id: string; name: string; durationMin: number; priceKzt: number };
 type Master = { id: string; name: string; title: string; color: string };
@@ -49,8 +49,11 @@ export default function BookingFlow({
 
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [paying, setPaying] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+
+  const deposit = service ? depositFor(service.priceKzt) : 0;
 
   const [done, setDone] = useState<{ manageToken: string; masterName: string } | null>(null);
 
@@ -85,6 +88,7 @@ export default function BookingFlow({
     setSlot(null);
     setName("");
     setPhone("");
+    setPaying(false);
     setError(null);
     setDone(null);
   }
@@ -101,17 +105,22 @@ export default function BookingFlow({
         startMin: slot.startMin,
         name,
         phone,
+        depositKzt: deposit,
+        depositPaid: true, // оплата депозита — гейт перед созданием брони
       });
       if (res.ok) {
         setDone({ manageToken: res.manageToken, masterName: res.masterName });
         setStep(5);
       } else if (res.reason === "taken") {
+        setPaying(false);
         setError("Этот слот только что заняли. Выберите другое время.");
         setStep(3);
       } else if (res.reason === "past") {
+        setPaying(false);
         setError("Это время уже прошло. Выберите другое.");
         setStep(3);
       } else {
+        setPaying(false);
         setError("Заполните имя и телефон.");
       }
     });
@@ -246,6 +255,7 @@ export default function BookingFlow({
             masterName={master.id === "any" ? slot.masterName : master.name}
             dateStr={dateStr}
             startMin={slot.startMin}
+            deposit={deposit}
           />
 
           {error && <ErrorBanner text={error} />}
@@ -267,16 +277,31 @@ export default function BookingFlow({
             />
           </div>
 
-          <button
-            onClick={confirm}
-            disabled={pending || !name.trim() || !phone.trim()}
-            className="w-full rounded-2xl bg-brand py-3.5 font-semibold text-white transition hover:brightness-105 disabled:opacity-40"
-          >
-            {pending ? "Записываем…" : `Записаться на ${minToHHMM(slot.startMin)}`}
-          </button>
-          <p className="text-center text-xs text-muted">
-            Напомним о записи за день и за 2 часа — без переписки.
-          </p>
+          {!paying ? (
+            <>
+              <button
+                onClick={() => {
+                  setError(null);
+                  setPaying(true);
+                }}
+                disabled={!name.trim() || !phone.trim()}
+                className="w-full rounded-2xl bg-brand py-3.5 font-semibold text-white transition hover:bg-brand-deep disabled:opacity-40"
+              >
+                Внести депозит {tenge(deposit)} →
+              </button>
+              <p className="text-center text-xs text-muted">
+                Депозит подтверждает запись и защищает от неявок. Зачтётся в стоимость —
+                в салоне доплатите {tenge(service.priceKzt - deposit)}.
+              </p>
+            </>
+          ) : (
+            <PaymentSheet
+              deposit={deposit}
+              pending={pending}
+              onPay={confirm}
+              onBack={() => setPaying(false)}
+            />
+          )}
         </section>
       )}
 
@@ -295,8 +320,15 @@ export default function BookingFlow({
             <Row label="Услуга" value={service.name} />
             <Row label="Мастер" value={done.masterName} />
             <Row label="Когда" value={`${humanDate(dateStr)}, ${minToHHMM(slot!.startMin)}`} />
-            <Row label="Стоимость" value={tenge(service.priceKzt)} last />
+            <Row label="Депозит внесён" value={tenge(deposit)} />
+            <Row label="Доплата в салоне" value={tenge(service.priceKzt - deposit)} last />
           </div>
+
+          <ReminderPreview
+            dateStr={dateStr}
+            startMin={slot!.startMin}
+            masterName={done.masterName}
+          />
 
           <Link
             href={`/${studio.slug}/manage/${done.manageToken}`}
@@ -375,18 +407,103 @@ function Summary({
   masterName,
   dateStr,
   startMin,
+  deposit,
 }: {
   service: Service;
   masterName: string;
   dateStr: string;
   startMin: number;
+  deposit: number;
 }) {
   return (
     <div className="rounded-2xl border border-line bg-brand-soft/60 p-4">
       <Row label="Услуга" value={service.name} />
       <Row label="Мастер" value={masterName} />
       <Row label="Когда" value={`${humanDate(dateStr)}, ${minToHHMM(startMin)}`} />
-      <Row label="Стоимость" value={tenge(service.priceKzt)} last />
+      <Row label="Стоимость" value={tenge(service.priceKzt)} />
+      <Row label="Депозит сейчас" value={tenge(deposit)} last />
+    </div>
+  );
+}
+
+/** Мок-оплата депозита. В проде — Kaspi/карта; здесь имитируем успешную оплату. */
+function PaymentSheet({
+  deposit,
+  pending,
+  onPay,
+  onBack,
+}: {
+  deposit: number;
+  pending: boolean;
+  onPay: () => void;
+  onBack: () => void;
+}) {
+  return (
+    <div className="rise space-y-4">
+      <div className="rounded-2xl bg-gradient-to-br from-brand to-brand-deep p-5 text-white shadow-[0_12px_32px_-12px_rgba(219,79,134,0.8)]">
+        <div className="flex items-center justify-between text-sm text-white/80">
+          <span>Депозит</span>
+          <span>Kaspi · карта</span>
+        </div>
+        <div className="mt-1 font-display text-4xl font-semibold">{tenge(deposit)}</div>
+        <div className="mt-6 font-mono text-lg tracking-widest text-white/90">
+          •••• •••• •••• 4242
+        </div>
+        <div className="mt-2 flex justify-between text-xs text-white/70">
+          <span>A. BAZENOVA</span>
+          <span>05 / 28</span>
+        </div>
+      </div>
+
+      <button
+        onClick={onPay}
+        disabled={pending}
+        className="w-full rounded-2xl bg-ok py-3.5 font-semibold text-white transition hover:brightness-105 disabled:opacity-50"
+      >
+        {pending ? "Проводим оплату…" : `Оплатить ${tenge(deposit)} и записаться`}
+      </button>
+      <button
+        onClick={onBack}
+        disabled={pending}
+        className="w-full text-center text-sm text-muted hover:text-ink disabled:opacity-50"
+      >
+        ← Изменить данные
+      </button>
+      <p className="text-center text-xs text-muted">
+        🔒 Демо-оплата. В проде — Kaspi / банковская карта.
+      </p>
+    </div>
+  );
+}
+
+/** Превью умного напоминания — то, что клиент получит в WhatsApp. */
+function ReminderPreview({
+  dateStr,
+  startMin,
+  masterName,
+}: {
+  dateStr: string;
+  startMin: number;
+  masterName: string;
+}) {
+  return (
+    <div className="mt-6 w-full rounded-2xl border border-line bg-[#e9f7ec] p-3 text-left">
+      <div className="mb-2 flex items-center gap-2 text-xs font-medium text-[#1f8a4c]">
+        <span>✓✓ WhatsApp</span>
+        <span className="text-muted">напомним за день и за 2 часа</span>
+      </div>
+      <div className="rounded-xl rounded-tl-sm bg-white p-3 text-sm shadow-sm">
+        Здравствуйте! Напоминаем: <b>{humanDate(dateStr)} в {minToHHMM(startMin)}</b> вас ждёт{" "}
+        {masterName} в Aigerim&rsquo;s Beauty Salon 💅
+        <div className="mt-2 flex gap-2">
+          <span className="rounded-lg bg-[#dcf8c6] px-3 py-1 text-xs font-medium text-[#1f8a4c]">
+            Подтверждаю
+          </span>
+          <span className="rounded-lg bg-gray-100 px-3 py-1 text-xs font-medium text-muted">
+            Перенести
+          </span>
+        </div>
+      </div>
     </div>
   );
 }

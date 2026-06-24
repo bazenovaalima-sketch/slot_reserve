@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { utcToLocalMin, minToHHMM, humanDate, todayLocalStr } from "@/lib/time";
 import { tenge } from "@/lib/format";
 import CancelButton from "./CancelButton";
+import ConfirmButton from "./ConfirmButton";
 
 function toDateStr(d: Date): string {
   return new Date(d.getTime() + 5 * 3600_000).toISOString().slice(0, 10);
@@ -36,7 +37,12 @@ export default async function ManagePage({
         <Row label="Услуга" value={appt.service.name} />
         <Row label="Мастер" value={appt.master.name} />
         <Row label="Когда" value={`${humanDate(dateStr)}, ${minToHHMM(utcToLocalMin(appt.startsAt))}`} />
-        <Row label="Стоимость" value={tenge(appt.service.priceKzt)} last />
+        <Row label="Стоимость" value={tenge(appt.service.priceKzt)} />
+        {appt.depositPaid ? (
+          <Row label="Депозит внесён" value={tenge(appt.depositKzt)} last />
+        ) : (
+          <Row label="Депозит" value="не требуется" last />
+        )}
       </div>
 
       {cancelled ? (
@@ -47,9 +53,16 @@ export default async function ManagePage({
         <p className="mt-6 text-center text-sm text-muted">Эта запись уже в прошлом.</p>
       ) : (
         <div className="mt-6 space-y-3">
+          {appt.confirmedByClient ? (
+            <p className="rounded-2xl border border-ok/30 bg-ok/10 py-3 text-center text-sm font-medium text-ok">
+              ✓ Вы подтвердили запись. Ждём вас!
+            </p>
+          ) : (
+            <ConfirmButton token={token} />
+          )}
           <Link
             href={`/${slug}`}
-            className="block w-full rounded-2xl bg-brand py-3.5 text-center font-semibold text-white hover:brightness-105"
+            className="block w-full rounded-2xl border border-line bg-surface py-3.5 text-center font-semibold hover:border-brand"
           >
             Перенести (записаться заново)
           </Link>

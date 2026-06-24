@@ -13,3 +13,8 @@ export function duration(min: number): string {
 export function initial(name: string): string {
   return name.trim().charAt(0).toUpperCase();
 }
+
+/** Депозит против неявок: ~30% цены, кратно 500, минимум 1000 ₸. */
+export function depositFor(priceKzt: number): number {
+  return Math.max(1000, Math.round((priceKzt * 0.3) / 500) * 500);
+}

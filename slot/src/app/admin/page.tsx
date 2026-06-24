@@ -8,7 +8,7 @@ import {
   minToHHMM,
   humanDate,
 } from "@/lib/time";
-import { initial } from "@/lib/format";
+import { initial, tenge } from "@/lib/format";
 import Logo from "@/components/Logo";
 import AptActions from "./AptActions";
 
@@ -129,7 +129,31 @@ export default async function AdminPage({
                       </div>
                       <div className="mt-0.5 text-sm">{a.client.name}</div>
                       <div className="text-xs text-muted">{a.service.name} · {a.client.phone}</div>
-                      <AptActions id={a.id} status={a.status} />
+
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {a.depositPaid && (
+                          <span className="rounded-md bg-ok/10 px-1.5 py-0.5 text-[0.7rem] font-medium text-ok">
+                            депозит {tenge(a.depositKzt)}
+                            {a.status === "no_show" ? " удержан" : ""}
+                          </span>
+                        )}
+                        {a.confirmedByClient ? (
+                          <span className="rounded-md bg-brand-soft px-1.5 py-0.5 text-[0.7rem] font-medium text-brand">
+                            ✓ клиент подтвердил
+                          </span>
+                        ) : a.reminderSentAt ? (
+                          <span className="rounded-md bg-gold/10 px-1.5 py-0.5 text-[0.7rem] font-medium text-gold">
+                            напоминание отправлено
+                          </span>
+                        ) : null}
+                      </div>
+
+                      <AptActions
+                        id={a.id}
+                        status={a.status}
+                        reminded={a.reminderSentAt != null}
+                        confirmed={a.confirmedByClient}
+                      />
                     </li>
                   ))}
                 </ul>

@@ -71,6 +71,10 @@ async function main() {
       clientId: client.id,
       startsAt: localToUtc(today, 660), // 11:00
       endsAt: localToUtc(today, 750), // 12:30
+      depositKzt: 2500,
+      depositPaid: true,
+      confirmedByClient: true, // клиент подтвердил по напоминанию
+      reminderSentAt: new Date(),
     },
   });
   await db.appointment.create({
@@ -80,6 +84,8 @@ async function main() {
       clientId: client.id,
       startsAt: localToUtc(tomorrow, 840), // 14:00
       endsAt: localToUtc(tomorrow, 900), // 15:00
+      depositKzt: 1500,
+      depositPaid: true, // депозит внесён, напоминание ещё не отправляли
     },
   });
 

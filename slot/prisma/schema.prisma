@@ -76,6 +76,15 @@ model Appointment {
   endsAt      DateTime
   status      String   @default("booked") // booked | cancelled | no_show | done
   manageToken String   @unique @default(cuid())
+
+  // Депозит против неявок
+  depositKzt  Int      @default(0)
+  depositPaid Boolean  @default(false)
+
+  // Умные напоминания + подтверждение клиентом
+  reminderSentAt    DateTime?
+  confirmedByClient Boolean   @default(false)
+
   createdAt   DateTime @default(now())
 
   @@index([masterId, startsAt])

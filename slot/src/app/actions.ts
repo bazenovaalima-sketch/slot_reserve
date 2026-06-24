@@ -32,6 +32,8 @@ export async function book(params: {
   startMin: number;
   name: string;
   phone: string;
+  depositKzt?: number;
+  depositPaid?: boolean;
 }): Promise<BookResult> {
   const { serviceId, masterId, dateStr, startMin, name, phone } = params;
 
@@ -67,6 +69,8 @@ export async function book(params: {
           clientId: client.id,
           startsAt,
           endsAt,
+          depositKzt: params.depositKzt ?? 0,
+          depositPaid: params.depositPaid ?? false,
         },
       });
     });
@@ -96,4 +100,23 @@ export async function cancelAppointment(params: {
 export async function setStatus(id: string, status: "no_show" | "done" | "booked"): Promise<void> {
   await db.appointment.update({ where: { id }, data: { status } });
   revalidatePath("/admin");
+}
+
+/**
+ * Умное напоминание (мок). В проде здесь — отправка в WhatsApp/SMS через провайдера.
+ * Сейчас просто фиксируем факт отправки.
+ */
+export async function markReminded(id: string): Promise<void> {
+  await db.appointment.update({ where: { id }, data: { reminderSentAt: new Date() } });
+  revalidatePath("/admin");
+}
+
+/** Клиент подтверждает запись по ссылке из напоминания. */
+export async function confirmByClient(token: string): Promise<{ ok: boolean }> {
+  await db.appointment.updateMany({
+    where: { manageToken: token },
+    data: { confirmedByClient: true },
+  });
+  revalidatePath("/admin");
+  return { ok: true };
 }
